@@ -26,7 +26,7 @@ def fit_unet_onlyGDBT():
     # gdbt_tree = Tree()
     # gdbt_tree.fit(X, y, feature_names=features)
     # path = './GDBT_only.pkl'
-    # joblib.dump(gdbt_tree,path)
+    # joblib.dump(gdbt_tree,path).
 
     path = './GDBT_only.pkl'
     gdbt_tree = joblib.load(path)
