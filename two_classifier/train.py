@@ -43,7 +43,7 @@ def fit_unet_onlyGDBT():
             value.insert(0,X1Index[index])
             writer.writerow(value)
         file.close()
-    print("标签1样本规则提取完成！")
+    print("标签1样本规则提取完成 ！")
     #
     # label1Rules(gdbt_tree) #满足规正确预测为1标签的样本规则集合
     #
