@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pickle
 import joblib
-from Gdbt import Tree
+from Gbdt import Tree
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 
@@ -25,13 +25,14 @@ def fit_unet_onlyGDBT():
     #
     # gdbt_tree = Tree()
     # gdbt_tree.fit(X, y, feature_names=features)
-    # path = './GDBT_only.pkl'
-    # joblib.dump(gdbt_tree,path).
+    # path = './GBDT_only.pkl'
+    # joblib.dump(gdbt_tree,path)
 
-    path = './GDBT_only.pkl'
-    gdbt_tree = joblib.load(path)
-
-    label1Rules(gdbt_tree) #满足规正确预测为1标签的样本规则集合
+    path = './GBDT_only.pkl'
+    gbdt_tree = joblib.load(path)
+    allRules = gbdt_tree.rule_ensemble.rulesAll  #所有规则
+    X1Rules = gbdt_tree.X1_rules
+    # label1Rules(gdbt_tree) #满足规正确预测为1标签的样本规则集合
     """
     测试数据
     """
@@ -46,7 +47,7 @@ def fit_unet_onlyGDBT():
     X = pd.DataFrame(X)
     X = X.values
     #预测并提取规则以及重要性
-    pre = gdbt_tree.predict(X)
+    pre = gbdt_tree.predict(X)
     accuracy = accuracy_score(y, pre)
     print("\n分类准确度为： ",accuracy)
 

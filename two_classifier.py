@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pickle
 import joblib
-from Gdbt import Tree
+from Gbdt import Tree
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 
