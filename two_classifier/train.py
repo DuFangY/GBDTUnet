@@ -31,8 +31,22 @@ def fit_unet_onlyGDBT():
     path = './GBDT_only.pkl'
     gbdt_tree = joblib.load(path)
     allRules = gbdt_tree.rule_ensemble.rulesAll  #所有规则
+    temp = allRules.copy()
+    temp.insert(0, 'index')
     X1Rules = gbdt_tree.X1_rules
+    X1Index = gbdt_tree.flag_1 #正确预测为样本1的索引
+    with open(r'./satisfy_rules1.csv',"a",newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(temp)
+        for index,item in enumerate(X1Rules):
+            value = item.tolist()
+            value.insert(0,X1Index[index])
+            writer.writerow(value)
+        file.close()
+    print("标签1样本规则提取完成！")
+    #
     # label1Rules(gdbt_tree) #满足规正确预测为1标签的样本规则集合
+    #
     """
     测试数据
     """
