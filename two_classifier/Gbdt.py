@@ -58,12 +58,14 @@ class RuleCondition():
 
 class Rule():
     def __init__(self,
-                 rule_conditions, prediction_value,fromTree):
+                 rule_conditions, prediction_value,fromTree,friedman_mse,samples):
         self.conditions = set(rule_conditions)
         self.support = min([x.support for x in rule_conditions])  #到达此条规则的样本占比数
         self.prediction_value = prediction_value
         self.rule_direction = None
         self.fromTree = fromTree
+        self.friedman_mse = friedman_mse
+        self.samples = samples
 
     def transform(self, X):
         """Transform dataset.
@@ -148,7 +150,7 @@ def extract_rules_from_tree(tree, count,feature_names=None):
         else:  # a leaf node
             if len(new_conditions) > 0:
                 #返回的规则是用 & 连接的
-                new_rule = Rule(new_conditions, tree.value[node_id][0][0],count)   #实例化规则包括有 conditions(RuleCondition类中的属性) prediction_value support  每一颗树的决策单路径添加进Rule类
+                new_rule = Rule(new_conditions, tree.value[node_id][0][0],count,tree.impurity[node_id],tree.n_node_samples[node_id])   #实例化规则包括有 conditions(RuleCondition类中的属性) prediction_value support  每一颗树的决策单路径添加进Rule类
                 rules.update([new_rule])  #所有路径中，每个决策路径都是Rule类的实例化对象
             else:
                 pass  # tree only has a root node!
@@ -312,15 +314,15 @@ class Tree(BaseEstimator, TransformerMixin):
         """
         可视化每一棵树
         """
-        # N = -1
-        # for dt in tree_list:
-        #     N += 1
-        #     dot_data = export_graphviz(dt[0][0], out_file=None,
-        #                                     feature_names=feature_names,
-        #                                     filled=True, rounded=True,
-        #                                     class_names=[0,1])
-        #     graph = pydotplus.graph_from_dot_data(dot_data)
-        #     graph.write_png('../tree_pic/'+str(N)+"_DTtree.png")
+        N = 0
+        for dt in tree_list:
+            N += 1
+            dot_data = export_graphviz(dt[0][0], out_file=None,
+                                            feature_names=feature_names,
+                                            filled=True, rounded=True,
+                                            class_names=[0,1])
+            graph = pydotplus.graph_from_dot_data(dot_data)
+            graph.write_png('../tree_pic/'+str(N)+"_DTtree.png")
         """
         这里为规则提取构造数据集：提取规则的数据集为训练集，且为正确预测的数据
         """

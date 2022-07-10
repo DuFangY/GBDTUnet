@@ -7,6 +7,17 @@ import joblib
 from Gbdt import Tree
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
+class AllRules1():
+    def __init__(self,rules,from_trees):
+        self.rules = rules
+        self.from_trees = from_trees
+        self.num = 1 #相同规则数量初始化为1
+
+    def __str__(self):
+        return self.rules  #这里返回规则
+
+    def __repr__(self):
+        return self.__str__()
 
 def fit_unet_onlyGDBT():
     """
@@ -35,15 +46,26 @@ def fit_unet_onlyGDBT():
     temp.insert(0, 'index')
     X1Rules = gbdt_tree.X1_rules
     X1Index = gbdt_tree.flag_1 #正确预测为样本1的索引
-    with open(r'./satisfy_rules1.csv',"a",newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(temp)
-        for index,item in enumerate(X1Rules):
-            value = item.tolist()
-            value.insert(0,X1Index[index])
-            writer.writerow(value)
-        file.close()
-    print("标签1样本规则提取完成 ！")
+
+    """
+    规则写入csv
+    """
+    # with open(r'./satisfy_rules1.csv',"a",newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow(temp)
+    #     for index,item in enumerate(X1Rules):
+    #         value = item.tolist()
+    #         value.insert(0,X1Index[index])
+    #         writer.writerow(value)
+    #     file.close()
+    # print("标签1样本规则提取完成 ！")
+    exRules = extractRules1(r'./satisfy_rules1.csv',allRules)
+    for i in range(len(exRules)-1):
+        for j in range(i+1,len(exRules)):
+            if(exRules[i].num < exRules[j].num):
+                val = exRules[i]
+                exRules[i] = exRules[j]
+                exRules[j] = val
     #
     # label1Rules(gdbt_tree) #满足规正确预测为1标签的样本规则集合
     #
@@ -65,6 +87,42 @@ def fit_unet_onlyGDBT():
     accuracy = accuracy_score(y, pre)
     print("\n分类准确度为： ",accuracy)
 
+
+def extractRules1(path,allRules):
+    data = pd.read_csv(path)
+    id = data[data.columns[0]] #此样本在所有样本中的索引
+    data = data[data.columns[1:]].values
+
+    Rules = []
+    for i in range(data.shape[0]):
+        print("样本 %s 正在提取满足的规则..." % (i))
+        oneSample = []  #存储每个样本每棵树符合条件的规则
+        for j in range(data.shape[1]):
+            if(data[i][j] == 1 and allRules[j].friedman_mse <=0.05):
+                oneSample.append(allRules[j])
+        Rules.append(oneSample) #[ [第一个样本规则],[第二个样本规则],[  ,    ,   ]......  ]
+    rulesRank = []
+    rulesRank_str = []
+    flag = 0
+    for ruleList in Rules:
+        #每一个样本的规则集
+        Tree = [] #记录每个样本规则来自的树的个数
+        decidePath=''
+        for decpath in ruleList:
+            Tree.append(decpath.fromTree) #将此样本所使用的树记录下来
+            decidePath += (str(decpath) + "&")
+        decidePath = decidePath[0:-1] #去除最后一个&符号
+        Tree.sort()
+        allR = AllRules1(decidePath,Tree)#每个样本记录缩减后重要性高的路径
+        if(allR.rules in rulesRank_str):
+            index = rulesRank_str.index(allR.rules) #找出index
+            flag += 1
+            rulesRank[index].num += 1
+        else:
+            rulesRank.append(allR)
+            rulesRank_str.append(allR.rules) #这里将对象实例化去掉，以便后续直接比较字符
+    print(flag)
+    return rulesRank
 def mergingRules(rules):
     feature_name = []  #规则涉及到的特征名
     op = [] # 规则判断符号 0代表小于等于 1代表大于
